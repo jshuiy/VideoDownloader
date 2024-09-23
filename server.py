@@ -47,41 +47,42 @@ def extract_links():
         bilibili_links = set()
 
         # 提取完整的 YouTube 视频链接
-        full_youtube_links = re.findall(r'https://www\.youtube\.com/watch\?v=[\w-]+', content)
-        if full_youtube_links:
-            # 如果找到完整的 YouTube 链接，直接使用这些链接
-            youtube_links.update(full_youtube_links)
-        else:
-            # 如果没有找到完整链接，提取 href="/watch?v=..." 格式的链接
-            youtube_matches = re.findall(r'href="/watch\?v=[\w-]+"', content)
-            for match in youtube_matches:
-                full_link = f'https://www.youtube.com{match[6:-1]}'  # 去除 href=" 并添加 https://www.youtube.com
-                youtube_links.add(full_link)
+        full_youtube_links = re.findall(r'https?://www\.youtube\.com/watch\?v=[\w-]+', content)
+        youtube_links.update(full_youtube_links)
 
-        # 提取完整的 Bilibili 视频链接
-        full_bilibili_links = re.findall(r'https://www\.bilibili\.com/video/[\w-]+(?:\?t=\d+(?:\.\d+)?|/?)', content)
-        if full_bilibili_links:
-            # 如果找到完整的 Bilibili 链接，直接使用这些链接
-            bilibili_links.update(full_bilibili_links)
-        else:
-            # 如果没有找到完整链接，提取 href="//www.bilibili.com/video/..." 格式的链接
-            bilibili_matches = re.findall(r'href="//www\.bilibili\.com/video/[\w-]+(?:\?t=\d+(?:\.\d+)?|/?)"', content)
-            for match in bilibili_matches:
-                full_link = f'https:{match[6:-1]}'  # 去除 href=" 并添加 https:
-                bilibili_links.add(full_link)
+        # 提取 href="/watch?v=..." 格式的链接
+        youtube_matches = re.findall(r'href=["\']?/watch\?v=[\w-]+["\']?', content)
+        for match in youtube_matches:
+            full_link = f'https://www.youtube.com{match[6:-1]}'  # 去除 href=" 并添加 https://www.youtube.com
+            youtube_links.add(full_link)
 
         print("去重后的 YouTube 链接:", youtube_links)  # 调试信息
+
+        # 提取完整的 Bilibili 视频链接
+        full_bilibili_links = re.findall(r'https?://www\.bilibili\.com/video/[\w-]+', content)
+        bilibili_links.update(full_bilibili_links)
+
+        # 提取 href="//www.bilibili.com/video/..." 格式的链接
+        bilibili_matches = re.findall(r'href=["\']?//www\.bilibili\.com/video/[\w-]+["\']?', content)
+        for match in bilibili_matches:
+            full_link = f'https:{match[6:-1]}'  # 去除 href="//" 并添加 https:
+            bilibili_links.add(full_link)
+
+        # 处理包含 ?spm_id_fr 的情况
+        bilibili_matches_with_query = re.findall(r'href=["\']?//www\.bilibili\.com/video/[\w-]+/\?[\w=&]+["\']?', content)
+        for match in bilibili_matches_with_query:
+            full_link = f'https:{match[6:-1]}'  # 去除 href="//" 并添加 https:
+            bilibili_links.add(full_link)
+
         print("去重后的 Bilibili 链接:", bilibili_links)  # 调试信息
 
         # 将去重后的链接写入到文件
         with open(after_file_path, 'w', encoding='utf-8') as file:
-            # 写入去重后的 YouTube 视频链接
             if youtube_links:
                 file.write("提取到的唯一 YouTube 视频链接：\n")
                 for link in youtube_links:
                     file.write(link + '\n')
 
-            # 写入去重后的 Bilibili 视频链接
             if bilibili_links:
                 file.write("\n提取到的唯一 Bilibili 视频链接：\n")
                 for link in bilibili_links:
