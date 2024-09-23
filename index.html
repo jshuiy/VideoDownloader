@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频下载</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>视频下载</h1>
+    <textarea id="text-input" rows="10" cols="50" placeholder="请输入文本..."></textarea><br>
+    <button id="save-button">保存文本</button>
+    <button id="extract-button">提取链接</button>
+    <button id="download-button">下载视频</button>
+    <div id="result-info"></div>
+
+    <script>
+        document.getElementById('save-button').addEventListener('click', function() {
+            const text = document.getElementById('text-input').value;
+            fetch('/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            }).then(response => response.json()).then(data => {
+                alert(data.message);
+            });
+        });
+
+        document.getElementById('extract-button').addEventListener('click', function() {
+            fetch('/extract', {
+                method: 'POST'
+            }).then(response => response.json()).then(data => {
+                alert(data.message);
+            }).catch(error => {
+                document.getElementById('result-info').innerHTML = `<span class="error">提取链接出错: ${error}</span>`;
+            });
+        });
+
+        document.getElementById('download-button').addEventListener('click', function() {
+            fetch('/download', {
+                method: 'POST'
+            }).then(response => response.json()).then(data => {
+                alert(data.message);
+                // 这里可以进一步处理下载状态
+            }).catch(error => {
+                document.getElementById('result-info').innerHTML = `<span class="error">下载出错: ${error}</span>`;
+            });
+        });
+    </script>
+</body>
+</html>
